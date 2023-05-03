@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_PROCESSES 10
+
+struct Process {
+    int pid;
+    int arrival_time;
+    int burst_time;
+    int remaining_time;
+};
+
+void swap(struct Process *a, struct Process *b) {
+    struct Process temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+int main() {
+    int n, i, j, time = 0, total_time = 0, smallest;
+    float avg_waiting_time = 0, avg_turnaround_time = 0;
+    struct Process processes[MAX_PROCESSES];
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+    for (i = 0; i < n; i++) {
+        printf("Enter the arrival time and burst time of process %d: ", i + 1);
+        scanf("%d %d", &processes[i].arrival_time, &processes[i].burst_time);
+        processes[i].pid = i + 1;
+        processes[i].remaining_time = processes[i].burst_time;
+        total_time += processes[i].burst_time;
+    }
+
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - i - 1; j++) {
+            if (processes[j].arrival_time > processes[j + 1].arrival_time) {
+                swap(&processes[j], &processes[j + 1]);
+            }
+        }
+    }
+    
+    printf("Process execution order: ");
+    for (time = processes[0].arrival_time; time < total_time;) {
+        smallest = MAX_PROCESSES;
+        for (i = 0; i < n; i++) {
+            if (processes[i].arrival_time <= time && processes[i].remaining_time < processes[smallest].remaining_time && processes[i].remaining_time > 0) {
+                smallest = i;
+            }
+        }
+
+        if (smallest == MAX_PROCESSES) {
+            time++;
+            continue;
+        }
+
+        processes[smallest].remaining_time--;
+        time++;
+
+        if (processes[smallest].remaining_time == 0) {
+            printf("%d ", processes[smallest].pid);
+            avg_waiting_time += time - processes[smallest].arrival_time - processes[smallest].burst_time;
+            avg_turnaround_time += time - processes[smallest].arrival_time;
+        }
+    }
+
+    printf("\nAverage waiting time: %f\n", avg_waiting_time / n);
+    printf("Average turnaround time: %f\n", avg_turnaround_time / n);
+
+    return 0;
+}
